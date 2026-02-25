@@ -1,0 +1,261 @@
+name: 'Speciesist Language Scanner'
+description: 'Scan PRs and documentation for speciesist language and suggest inclusive alternatives'
+author: 'Open Paws'
+branding:
+  icon: 'heart'
+  color: 'green'
+
+inputs:
+  severity:
+    description: 'Minimum severity to report (error, warning, info)'
+    required: false
+    default: 'warning'
+  paths:
+    description: 'Paths to scan (space-separated)'
+    required: false
+    default: '.'
+  github-token:
+    description: 'GitHub token for PR annotations'
+    required: false
+    default: ${{ github.token }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Install woke
+      shell: bash
+      run: |
+        curl -sSfL https://git.io/getwoke | bash -s -- -b /usr/local/bin
+
+    - name: Create speciesist language rules
+      shell: bash
+      run: |
+        cat > /tmp/.woke.yaml << 'RULES'
+        rules:
+          - name: kill-two-birds
+            terms:
+              - kill two birds with one stone
+              - killing two birds with one stone
+              - killed two birds with one stone
+            alternatives:
+              - accomplish two things at once
+              - solve two problems at once
+            severity: warning
+            note: "This phrase normalizes violence toward birds. The alternative is equally expressive and more professional. (Takeshita et al., 2022)"
+            options:
+              word_boundary: false
+              categories:
+                - speciesism
+
+          - name: beat-dead-horse
+            terms:
+              - beat a dead horse
+              - beating a dead horse
+              - flog a dead horse
+              - flogging a dead horse
+            alternatives:
+              - belabor the point
+              - go over old ground
+            severity: warning
+            note: "This phrase trivializes violence toward horses."
+            options:
+              word_boundary: false
+              categories:
+                - speciesism
+
+          - name: bring-home-bacon
+            terms:
+              - bring home the bacon
+              - bringing home the bacon
+              - brought home the bacon
+            alternatives:
+              - bring home the results
+              - earn a living
+            severity: warning
+            note: "This phrase references animal slaughter."
+            options:
+              word_boundary: false
+              categories:
+                - speciesism
+
+          - name: guinea-pig
+            terms:
+              - guinea pig
+            alternatives:
+              - test subject
+              - beta tester
+            severity: warning
+            note: "This phrase references animal experimentation."
+            options:
+              word_boundary: true
+              categories:
+                - speciesism
+
+          - name: skin-a-cat
+            terms:
+              - more than one way to skin a cat
+              - many ways to skin a cat
+            alternatives:
+              - more than one way to solve this
+              - many ways to approach this
+            severity: warning
+            note: "This phrase depicts graphic violence toward cats."
+            options:
+              word_boundary: false
+              categories:
+                - speciesism
+
+          - name: let-cat-out-of-bag
+            terms:
+              - let the cat out of the bag
+              - letting the cat out of the bag
+            alternatives:
+              - reveal the secret
+              - disclose the information
+            severity: warning
+            note: "This phrase references selling animals under false pretenses."
+            options:
+              word_boundary: false
+              categories:
+                - speciesism
+
+          - name: open-can-of-worms
+            terms:
+              - open a can of worms
+              - opening a can of worms
+              - opened a can of worms
+            alternatives:
+              - create a complicated situation
+              - raise a difficult issue
+            severity: warning
+            note: "This phrase references using live animals as bait."
+            options:
+              word_boundary: false
+              categories:
+                - speciesism
+
+          - name: wild-goose-chase
+            terms:
+              - wild goose chase
+            alternatives:
+              - pointless pursuit
+              - fool's errand
+            severity: warning
+            note: "This phrase references chasing wild geese for sport."
+            options:
+              word_boundary: false
+              categories:
+                - speciesism
+
+          - name: take-bull-by-horns
+            terms:
+              - take the bull by the horns
+              - taking the bull by the horns
+            alternatives:
+              - face the challenge head-on
+              - tackle the problem directly
+            severity: warning
+            note: "This phrase references bullfighting."
+            options:
+              word_boundary: false
+              categories:
+                - speciesism
+
+          - name: shooting-fish
+            terms:
+              - like shooting fish in a barrel
+            alternatives:
+              - extremely easy
+              - effortless
+            severity: warning
+            note: "This phrase depicts gratuitous violence toward fish."
+            options:
+              word_boundary: false
+              categories:
+                - speciesism
+
+          - name: sacred-cow
+            terms:
+              - sacred cow
+              - sacred cows
+            alternatives:
+              - untouchable topic
+              - unquestioned belief
+            severity: warning
+            note: "This phrase is both speciesist and culturally insensitive."
+            options:
+              word_boundary: true
+              categories:
+                - speciesism
+
+          - name: cattle-vs-pets
+            terms:
+              - cattle vs. pets
+              - cattle vs pets
+              - cattle versus pets
+              - cattle not pets
+              - treat servers like cattle
+            alternatives:
+              - ephemeral vs. persistent
+              - fungible vs. unique
+            severity: warning
+            note: "The cattle/pets metaphor normalizes treating sentient beings as disposable. 'Ephemeral' and 'persistent' are more precise."
+            options:
+              word_boundary: false
+              categories:
+                - speciesism
+
+          - name: canary-deployment
+            terms:
+              - canary deployment
+              - canary release
+              - canary test
+            alternatives:
+              - progressive rollout
+              - incremental deployment
+            severity: info
+            note: "This term references using canaries in coal mines as expendable early warning systems."
+            options:
+              word_boundary: true
+              categories:
+                - speciesism
+
+          - name: monkey-patch
+            terms:
+              - monkey patch
+              - monkey-patch
+              - monkeypatch
+              - monkey patching
+            alternatives:
+              - runtime patch
+              - dynamic patch
+            severity: info
+            note: "'Runtime patch' more precisely describes the technique."
+            options:
+              word_boundary: true
+              categories:
+                - speciesism
+
+          - name: dogfooding
+            terms:
+              - dogfood
+              - dogfooding
+              - eating your own dogfood
+            alternatives:
+              - self-hosting
+              - self-testing
+              - using your own product
+            severity: info
+            note: "'Self-hosting' more precisely describes the practice."
+            options:
+              word_boundary: true
+              categories:
+                - speciesism
+        RULES
+
+    - name: Run speciesist language scan
+      shell: bash
+      run: |
+        woke -c /tmp/.woke.yaml --exit-1-on-failure ${{ inputs.paths }} || true
+      env:
+        GITHUB_TOKEN: ${{ inputs.github-token }}
