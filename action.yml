@@ -1,5 +1,6 @@
-name: 'Speciesist Language Scanner'
-description: 'Scan PRs and documentation for speciesist language and suggest inclusive alternatives'
+# AUTO-GENERATED from project-compassionate-code. Do not edit directly.
+name: 'Animal Violence Language Scanner'
+description: 'Scan PRs and documentation for language that normalizes violence toward animals and suggest alternatives'
 author: 'Open Paws'
 branding:
   icon: 'heart'
@@ -27,233 +28,611 @@ runs:
       run: |
         curl -sSfL https://git.io/getwoke | bash -s -- -b /usr/local/bin
 
-    - name: Create speciesist language rules
+    - name: Create animal violence language rules
       shell: bash
       run: |
         cat > /tmp/.woke.yaml << 'RULES'
         rules:
-          - name: kill-two-birds
+          - name: kill-two-birds-with-one-stone
             terms:
               - kill two birds with one stone
               - killing two birds with one stone
               - killed two birds with one stone
             alternatives:
               - accomplish two things at once
-              - solve two problems at once
-            severity: warning
-            note: "This phrase normalizes violence toward birds. The alternative is equally expressive and more professional. (Takeshita et al., 2022)"
+              - solve two problems with one action
+              - hit two targets with one shot
+            severity: error
+            note: "Violent animal idiom with universally clearer alternatives"
             options:
               word_boundary: false
               categories:
-                - speciesism
+                - animal-violence
 
-          - name: beat-dead-horse
+          - name: beat-a-dead-horse
             terms:
               - beat a dead horse
               - beating a dead horse
-              - flog a dead horse
-              - flogging a dead horse
             alternatives:
               - belabor the point
               - go over old ground
-            severity: warning
-            note: "This phrase trivializes violence toward horses."
+              - repeat unnecessarily
+            severity: error
+            note: "Violent animal idiom — alternatives are more direct"
             options:
               word_boundary: false
               categories:
-                - speciesism
+                - animal-violence
 
-          - name: bring-home-bacon
-            terms:
-              - bring home the bacon
-              - bringing home the bacon
-              - brought home the bacon
-            alternatives:
-              - bring home the results
-              - earn a living
-            severity: warning
-            note: "This phrase references animal slaughter."
-            options:
-              word_boundary: false
-              categories:
-                - speciesism
-
-          - name: guinea-pig
-            terms:
-              - guinea pig
-            alternatives:
-              - test subject
-              - beta tester
-            severity: warning
-            note: "This phrase references animal experimentation."
-            options:
-              word_boundary: true
-              categories:
-                - speciesism
-
-          - name: skin-a-cat
+          - name: more-than-one-way-to-skin-a-cat
             terms:
               - more than one way to skin a cat
               - many ways to skin a cat
+              - other ways to skin a cat
             alternatives:
               - more than one way to solve this
-              - many ways to approach this
-            severity: warning
-            note: "This phrase depicts graphic violence toward cats."
+              - multiple approaches available
+              - several ways to accomplish this
+            severity: error
+            note: "Violent animal idiom — alternatives are shorter and clearer"
             options:
               word_boundary: false
               categories:
-                - speciesism
+                - animal-violence
 
-          - name: let-cat-out-of-bag
+          - name: let-the-cat-out-of-the-bag
             terms:
               - let the cat out of the bag
               - letting the cat out of the bag
             alternatives:
               - reveal the secret
-              - disclose the information
-            severity: warning
-            note: "This phrase references selling animals under false pretenses."
+              - disclose prematurely
+              - let it slip
+            severity: info
+            note: "Animal idiom — alternatives are more precise"
             options:
               word_boundary: false
               categories:
-                - speciesism
+                - animal-violence
 
-          - name: open-can-of-worms
+          - name: open-a-can-of-worms
             terms:
               - open a can of worms
               - opening a can of worms
               - opened a can of worms
             alternatives:
               - create a complicated situation
-              - raise a difficult issue
-            severity: warning
-            note: "This phrase references using live animals as bait."
+              - uncover hidden problems
+              - open Pandora's box
+            severity: info
+            note: "Animal idiom — alternatives communicate the idea more directly"
             options:
               word_boundary: false
               categories:
-                - speciesism
+                - animal-violence
 
           - name: wild-goose-chase
             terms:
               - wild goose chase
             alternatives:
+              - futile search
               - pointless pursuit
               - fool's errand
-            severity: warning
-            note: "This phrase references chasing wild geese for sport."
+            severity: info
+            note: "Animal idiom — alternatives are more universally understood"
             options:
               word_boundary: false
               categories:
-                - speciesism
+                - animal-violence
 
-          - name: take-bull-by-horns
-            terms:
-              - take the bull by the horns
-              - taking the bull by the horns
-            alternatives:
-              - face the challenge head-on
-              - tackle the problem directly
-            severity: warning
-            note: "This phrase references bullfighting."
-            options:
-              word_boundary: false
-              categories:
-                - speciesism
-
-          - name: shooting-fish
+          - name: like-shooting-fish-in-a-barrel
             terms:
               - like shooting fish in a barrel
             alternatives:
-              - extremely easy
+              - trivially easy
+              - like taking candy from a baby
               - effortless
-            severity: warning
-            note: "This phrase depicts gratuitous violence toward fish."
+            severity: error
+            note: "Violent animal idiom with shorter alternatives"
             options:
               word_boundary: false
               categories:
-                - speciesism
+                - animal-violence
+
+          - name: flog-a-dead-horse
+            terms:
+              - flog a dead horse
+              - flogging a dead horse
+            alternatives:
+              - belabor the point
+              - waste effort on a settled matter
+              - repeat unnecessarily
+            severity: error
+            note: "Violent animal idiom — same as 'beat a dead horse'"
+            options:
+              word_boundary: false
+              categories:
+                - animal-violence
+
+          - name: there-are-bigger-fish-to-fry
+            terms:
+              - there are bigger fish to fry
+            alternatives:
+              - more important matters to address
+              - higher priorities
+              - bigger issues at hand
+            severity: info
+            note: "Animal idiom — alternatives are more professional"
+            options:
+              word_boundary: false
+              categories:
+                - animal-violence
+
+          - name: guinea-pig
+            terms:
+              - guinea pig
+            alternatives:
+              - test subject
+              - first to try
+              - early adopter
+            severity: warning
+            note: "Animal-as-experiment metaphor — alternatives are more precise in technical contexts"
+            options:
+              word_boundary: true
+              categories:
+                - animal-violence
+
+          - name: hold-your-horses
+            terms:
+              - hold your horses
+            alternatives:
+              - wait a moment
+              - slow down
+              - be patient
+            severity: info
+            note: "Animal idiom — alternatives are more direct"
+            options:
+              word_boundary: false
+              categories:
+                - animal-violence
+
+          - name: the-elephant-in-the-room
+            terms:
+              - the elephant in the room
+            alternatives:
+              - the obvious issue
+              - the unaddressed problem
+            severity: info
+            note: "Well-understood idiom — flag for awareness only"
+            options:
+              word_boundary: false
+              categories:
+                - animal-violence
+
+          - name: straight-from-the-horses-mouth
+            terms:
+              - straight from the horse's mouth
+            alternatives:
+              - directly from the source
+              - firsthand
+              - from the authority
+            severity: info
+            note: "Animal idiom — alternatives are clearer for international audiences"
+            options:
+              word_boundary: false
+              categories:
+                - animal-violence
+
+          - name: bring-home-the-bacon
+            terms:
+              - bring home the bacon
+              - bringing home the bacon
+              - brought home the bacon
+              - brings home the bacon
+            alternatives:
+              - bring home the results
+              - earn a living
+              - win the prize
+            severity: error
+            note: "Animal slaughter idiom — alternatives are equally expressive"
+            options:
+              word_boundary: false
+              categories:
+                - animal-violence
+
+          - name: take-the-bull-by-the-horns
+            terms:
+              - take the bull by the horns
+              - taking the bull by the horns
+              - took the bull by the horns
+            alternatives:
+              - face the challenge head-on
+              - tackle the problem directly
+              - seize the opportunity
+            severity: warning
+            note: "Bullfighting idiom — alternatives convey the same assertiveness"
+            options:
+              word_boundary: false
+              categories:
+                - animal-violence
+
+          - name: like-lambs-to-the-slaughter
+            terms:
+              - like lambs to the slaughter
+            alternatives:
+              - without resistance
+              - blindly following
+              - unknowingly walking into danger
+            severity: error
+            note: "Violent animal idiom referencing slaughter — alternatives are more descriptive"
+            options:
+              word_boundary: false
+              categories:
+                - animal-violence
+
+          - name: no-room-to-swing-a-cat
+            terms:
+              - no room to swing a cat
+            alternatives:
+              - very cramped
+              - extremely tight space
+              - barely any room
+            severity: warning
+            note: "Violent animal idiom — alternatives are shorter and clearer"
+            options:
+              word_boundary: false
+              categories:
+                - animal-violence
+
+          - name: red-herring
+            terms:
+              - red herring
+            alternatives:
+              - distraction
+              - false lead
+              - misleading clue
+            severity: info
+            note: "Animal-origin idiom — flag for awareness only"
+            options:
+              word_boundary: true
+              categories:
+                - animal-violence
+
+          - name: dont-be-a-chicken
+            terms:
+              - don't be a chicken
+            alternatives:
+              - don't hesitate
+              - be brave
+              - go for it
+            severity: warning
+            note: "Animal-as-coward insult in comments"
+            options:
+              word_boundary: false
+              categories:
+                - animal-violence
+
+          - name: pig
+            terms:
+              - pig
+            alternatives:
+              - resource-intensive
+              - bloated
+              - heavy consumer
+            severity: warning
+            note: "Animal-as-insult for resource consumption"
+            options:
+              word_boundary: true
+              categories:
+                - animal-violence
+
+          - name: cowboy-coding
+            terms:
+              - cowboy coding
+            alternatives:
+              - undisciplined coding
+              - ad-hoc development
+              - code without process
+            severity: info
+            note: "Not directly animal-related but reinforces animal industry terminology"
+            options:
+              word_boundary: true
+              categories:
+                - animal-violence
+
+          - name: code-monkey
+            terms:
+              - code monkey
+            alternatives:
+              - developer
+              - programmer
+              - engineer
+            severity: warning
+            note: "Animal-as-insult for programmers — dehumanizing and unprofessional"
+            options:
+              word_boundary: true
+              categories:
+                - animal-violence
+
+          - name: cattle-vs-pets
+            terms:
+              - cattle vs. pets
+            alternatives:
+              - ephemeral vs. persistent
+              - disposable vs. unique
+              - numbered vs. named
+            severity: warning
+            note: "Infrastructure metaphor — alternatives are technically more precise"
+            options:
+              word_boundary: false
+              categories:
+                - animal-violence
+
+          - name: pet-project
+            terms:
+              - pet project
+            alternatives:
+              - side project
+              - passion project
+            severity: info
+            note: "Common idiom — flag for awareness only"
+            options:
+              word_boundary: true
+              categories:
+                - animal-violence
+
+          - name: canary-in-a-coal-mine
+            terms:
+              - canary in a coal mine
+            alternatives:
+              - early warning signal
+              - leading indicator
+              - sentinel
+            severity: info
+            note: "Animal metaphor — alternatives are more technical"
+            options:
+              word_boundary: false
+              categories:
+                - animal-violence
+
+          - name: dogfooding
+            terms:
+              - dogfooding
+              - dogfood
+              - eating your own dogfood
+              - eat your own dogfood
+            alternatives:
+              - self-hosting
+              - eating your own cooking
+              - using internally
+            severity: info
+            note: "Common tech term — flag for awareness only"
+            options:
+              word_boundary: true
+              categories:
+                - animal-violence
+
+          - name: herding-cats
+            terms:
+              - herding cats
+            alternatives:
+              - coordinating independent contributors
+              - managing a distributed effort
+              - organizing chaos
+            severity: warning
+            note: "Animal metaphor — alternatives are more descriptive"
+            options:
+              word_boundary: true
+              categories:
+                - animal-violence
+
+          - name: go-on-a-fishing-expedition
+            terms:
+              - go on a fishing expedition
+            alternatives:
+              - exploratory investigation
+              - unfocused search
+              - speculative inquiry
+            severity: warning
+            note: "Animal metaphor — alternatives are more precise"
+            options:
+              word_boundary: false
+              categories:
+                - animal-violence
 
           - name: sacred-cow
             terms:
               - sacred cow
               - sacred cows
             alternatives:
-              - untouchable topic
               - unquestioned belief
+              - untouchable topic
+              - protected assumption
             severity: warning
-            note: "This phrase is both speciesist and culturally insensitive."
+            note: "Both speciesist and culturally insensitive — trivializes Hindu beliefs while objectifying cattle"
             options:
               word_boundary: true
               categories:
-                - speciesism
+                - animal-violence
 
-          - name: cattle-vs-pets
+          - name: scapegoat
             terms:
-              - cattle vs. pets
-              - cattle vs pets
-              - cattle versus pets
-              - cattle not pets
-              - treat servers like cattle
+              - scapegoat
+              - scapegoated
+              - scapegoating
             alternatives:
-              - ephemeral vs. persistent
-              - fungible vs. unique
+              - blame target
+              - fall person
+              - wrongly blamed
             severity: warning
-            note: "The cattle/pets metaphor normalizes treating sentient beings as disposable. 'Ephemeral' and 'persistent' are more precise."
+            note: "Originates from ritual sacrifice of goats — alternatives are more precise"
+            options:
+              word_boundary: true
+              categories:
+                - animal-violence
+
+          - name: rat-race
+            terms:
+              - rat race
+            alternatives:
+              - daily grind
+              - competitive treadmill
+              - endless hustle
+            severity: info
+            note: "Derogatory animal metaphor for futility — alternatives are more descriptive"
+            options:
+              word_boundary: true
+              categories:
+                - animal-violence
+
+          - name: dead-cat-bounce
+            terms:
+              - dead cat bounce
+            alternatives:
+              - temporary rebound
+              - false recovery
+              - brief uptick
+            severity: warning
+            note: "Financial/tech term depicting animal death — alternatives are more professional"
             options:
               word_boundary: false
               categories:
-                - speciesism
+                - animal-violence
 
-          - name: canary-deployment
+          - name: dog-eat-dog
             terms:
-              - canary deployment
-              - canary release
-              - canary test
+              - dog-eat-dog
+              - dog eat dog
             alternatives:
-              - progressive rollout
-              - incremental deployment
+              - ruthlessly competitive
+              - cutthroat
+              - fiercely competitive
             severity: info
-            note: "This term references using canaries in coal mines as expendable early warning systems."
+            note: "Characterizes animals as violent — alternatives convey meaning more precisely"
             options:
               word_boundary: true
               categories:
-                - speciesism
+                - animal-violence
 
-          - name: monkey-patch
+          - name: whack-a-mole
             terms:
-              - monkey patch
-              - monkey-patch
-              - monkeypatch
-              - monkey patching
+              - whack-a-mole
+              - whack a mole
             alternatives:
-              - runtime patch
-              - dynamic patch
+              - recurring problem
+              - endless loop
+              - unwinnable game
             severity: info
-            note: "'Runtime patch' more precisely describes the technique."
+            note: "References a game based on hitting animals — alternatives describe the pattern more precisely"
             options:
               word_boundary: true
               categories:
-                - speciesism
+                - animal-violence
 
-          - name: dogfooding
+          - name: kill-process
             terms:
-              - dogfood
-              - dogfooding
-              - eating your own dogfood
+              - kill process
+              - killing process
+              - killed process
             alternatives:
-              - self-hosting
-              - self-testing
-              - using your own product
+              - terminate the process
+              - stop the process
+              - end the process
             severity: info
-            note: "'Self-hosting' more precisely describes the practice."
+            note: "Process language — in POSIX context this is standard, in docs alternatives may be clearer"
             options:
               word_boundary: true
               categories:
-                - speciesism
+                - animal-violence
+
+          - name: kill-the-server
+            terms:
+              - kill the server
+              - killing the server
+              - killed the server
+            alternatives:
+              - stop the server
+              - shut down the server
+              - terminate the server
+            severity: info
+            note: "Process language — alternatives are equally clear"
+            options:
+              word_boundary: false
+              categories:
+                - animal-violence
+
+          - name: nuke
+            terms:
+              - nuke
+            alternatives:
+              - delete completely
+              - wipe clean
+              - remove entirely
+            severity: warning
+            note: "Violent metaphor in technical context — alternatives are more professional"
+            options:
+              word_boundary: true
+              categories:
+                - animal-violence
+
+          - name: abort
+            terms:
+              - abort
+            alternatives:
+              - cancel
+              - stop
+              - halt
+            severity: info
+            note: "Standard technical term — flag for awareness only in non-technical contexts"
+            options:
+              word_boundary: true
+              categories:
+                - animal-violence
+
+          - name: master-slave
+            terms:
+              - master/slave
+            alternatives:
+              - primary/replica
+              - leader/follower
+              - controller/worker
+            severity: warning
+            note: "Actively being replaced across the industry — follows existing inclusive naming initiatives"
+            options:
+              word_boundary: true
+              categories:
+                - animal-violence
+
+          - name: whitelist-blacklist
+            terms:
+              - whitelist/blacklist
+            alternatives:
+              - allowlist/denylist
+              - permit list/block list
+              - inclusion list/exclusion list
+            severity: warning
+            note: "Actively being replaced — Google, Twitter, IETF have adopted alternatives"
+            options:
+              word_boundary: true
+              categories:
+                - animal-violence
+
+          - name: grandfathered
+            terms:
+              - grandfathered
+            alternatives:
+              - legacy
+              - exempt
+              - pre-existing
+            severity: info
+            note: "Historically exclusionary origin — alternatives are equally clear"
+            options:
+              word_boundary: true
+              categories:
+                - animal-violence
         RULES
 
-    - name: Run speciesist language scan
+    - name: Run animal violence language scan
       shell: bash
       run: |
         woke -c /tmp/.woke.yaml --exit-1-on-failure ${{ inputs.paths }} || true

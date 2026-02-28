@@ -1,4 +1,4 @@
-# Speciesist Language Scanner — GitHub Action
+# No Animal Violence — GitHub Action
 
 A GitHub Action that scans PRs and documentation for speciesist language and suggests clearer, more professional alternatives.
 
@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: Open-Paws/speciesist-language-action@v1
+      - uses: Open-Paws/no-animal-violence-action@v1
 ```
 
 ## What It Detects
@@ -27,7 +27,7 @@ jobs:
 ## Configuration
 
 ```yaml
-- uses: Open-Paws/speciesist-language-action@v1
+- uses: Open-Paws/no-animal-violence-action@v1
   with:
     severity: warning    # minimum severity: error, warning, info
     paths: docs/ src/    # paths to scan (default: entire repo)
