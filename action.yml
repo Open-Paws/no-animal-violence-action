@@ -1100,18 +1100,33 @@ runs:
     - name: Run animal violence language scan
       shell: bash
       run: |
+        # Validate severity against allowlist before any interpolation into code.
+        WOKE_SEVERITY="${{ inputs.severity }}"
+        case "$WOKE_SEVERITY" in
+          error|warning|info) ;;
+          *) echo "::error::Invalid severity '$WOKE_SEVERITY'. Must be: error, warning, or info."; exit 1 ;;
+        esac
+
         # Always run the full scan so all violations are visible in CI output.
-        woke -c /tmp/.woke.yaml ${{ inputs.paths }} || true
+        # --disable-default-rules ensures only our rules are applied; woke's
+        # built-in default.yaml (whitelist/blacklist etc.) is suppressed.
+        woke -c /tmp/.woke.yaml --disable-default-rules ${{ inputs.paths }} || true
 
         # Build a severity-filtered config containing only rules at or above
         # the requested threshold: error=0, warning=1, info=2.
         # Lower numeric value = higher severity, so "warning" includes error+warning.
-        python3 - <<'PYEOF'
-        import yaml, sys
+        # Pass severity via environment variable — never interpolate user input into source.
+        py_exit=0
+        python3 - <<'PYEOF' || py_exit=$?
+        import os, yaml, sys
 
         order = {"error": 0, "warning": 1, "info": 2}
-        threshold = "${{ inputs.severity }}"
-        threshold_val = order.get(threshold, 0)  # unknown → treat as strictest
+        threshold = os.environ["WOKE_SEVERITY"]
+        threshold_val = order.get(threshold, -1)  # unknown → explicit error (defense-in-depth)
+
+        if threshold_val == -1:
+            print(f"::error::Unrecognised severity value '{threshold}' reached Python — must be error, warning, or info.", file=sys.stderr)
+            sys.exit(1)
 
         with open('/tmp/.woke.yaml') as f:
             config = yaml.safe_load(f)
@@ -1126,15 +1141,22 @@ runs:
 
         sys.exit(0 if config['rules'] else 99)
         PYEOF
+        py_exit=${py_exit:-0}
 
-        py_exit=$?
         if [ "$py_exit" -eq 99 ]; then
           # No rules at or above threshold — nothing to gate on, pass cleanly.
-          echo "No rules at severity '${{ inputs.severity }}' or above — scan passed."
+          echo "No rules at severity '$WOKE_SEVERITY' or above — scan passed."
           exit 0
         fi
 
+        if [ "$py_exit" -ne 0 ]; then
+          exit "$py_exit"
+        fi
+
         # Gate: fail CI if any violations exist at or above threshold severity.
-        woke -c /tmp/.woke-threshold.yaml --exit-1-on-failure ${{ inputs.paths }}
+        # --disable-default-rules must match the display run above so both see
+        # the same effective rule set.
+        woke -c /tmp/.woke-threshold.yaml --disable-default-rules --exit-1-on-failure ${{ inputs.paths }}
       env:
         GITHUB_TOKEN: ${{ inputs.github-token }}
+        WOKE_SEVERITY: ${{ inputs.severity }}
