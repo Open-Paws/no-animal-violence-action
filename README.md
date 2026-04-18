@@ -5,7 +5,7 @@
 [![Status: Production](https://img.shields.io/badge/status-production-brightgreen)](./AGENTS.md)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](./LICENSE)
 [![Composite Action](https://img.shields.io/badge/type-composite%20action-lightgrey)](./action.yml)
-[![Scan: 65+ patterns](https://img.shields.io/badge/patterns-65%2B-orange)](./action.yml)
+[![desloppify score](https://img.shields.io/badge/desloppify-0.0%2F100-red)](scorecard.png)
 
 A composite GitHub Action that scans pull requests and repository files for speciesist language — violent animal idioms, commodity framing, and industry euphemisms — and fails CI when violations meet or exceed a configured severity threshold. Part of the [Open Paws](https://openpaws.ai) no-animal-violence tooling suite.
 
@@ -201,6 +201,10 @@ Severity values are ordered: `error` (0) > `warning` (1) > `info` (2). The thres
 </details>
 
 ---
+
+## Code Quality
+
+<img src="scorecard.png" width="100%">
 
 ## Contributing
 
