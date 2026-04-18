@@ -1,0 +1,7 @@
+# action.yml contains the canonical rule definitions — all patterns are present by design
+action.yml
+# .claude/ contains agent instructions that document the forbidden patterns as examples
+.claude/
+# AGENTS.md and README.md document the detected patterns as usage examples
+AGENTS.md
+README.md
