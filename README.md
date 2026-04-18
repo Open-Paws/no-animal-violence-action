@@ -59,13 +59,11 @@ To configure severity or limit scan scope:
 
 ### Severity levels
 
-<!-- woke:disable -->
 | Level | Typical patterns | Examples |
 |-------|-----------------|---------|
 | `error` | Direct references to harming or killing animals | "kill two birds with one stone", "like a chicken with its head cut off", "bring home the bacon" |
 | `warning` | Industry commodity framing and animal-as-object metaphors | "livestock", "guinea pig", "cash cow", "processing plant", "gestation crate" |
 | `info` | Common idioms flagged for awareness | "red herring", "pet project", "hold your horses", "canary in a coal mine" |
-<!-- woke:enable -->
 
 Setting `severity: error` is the most permissive gate — it only blocks merges on the most harmful patterns. Setting `severity: info` blocks on all 65+ detected patterns.
 
@@ -73,11 +71,9 @@ Setting `severity: error` is the most permissive gate — it only blocks merges 
 
 Three categories of patterns, all embedded inline in `action.yml`:
 
-<!-- woke:disable -->
 - **Violent animal idioms** — phrases that reference harm to animals (e.g., "beat a dead horse" → "belabor the point")
 - **Animal-as-object metaphors** — phrases that reduce animals to instruments or commodities (e.g., "guinea pig" → "test subject", "cash cow" → "profit center")
 - **Industry euphemisms** — terms that obscure the reality of farmed animal treatment (e.g., "processing plant" → "slaughterhouse", "livestock" → "farmed animals")
-<!-- woke:enable -->
 
 ### Outputs
 
