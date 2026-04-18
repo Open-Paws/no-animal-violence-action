@@ -1053,6 +1053,21 @@ runs:
             - industry-euphemism
           note: Industry euphemism for the flesh of male dairy calves, typically killed within
             weeks of birth. Obscures both the species and the age of the individual.
+        - name: lame-duck
+          terms:
+          - lame duck
+          - lame-duck
+          alternatives:
+          - outgoing
+          - transitional
+          - ineffective
+          severity: info
+          options:
+            word_boundary: true
+            categories:
+            - animal-violence
+          note: References a bird unable to fly due to injury. 'Outgoing' or 'transitional'
+            are more precise in political and tech contexts.
         RULES
 
     - name: Run animal violence language scan
