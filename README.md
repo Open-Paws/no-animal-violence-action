@@ -2,34 +2,21 @@
 
 [![No Animal Violence](https://img.shields.io/badge/language-no--animal--violence-green)](https://github.com/Open-Paws/no-animal-violence)
 [![Part of Open Paws](https://img.shields.io/badge/Open%20Paws-ecosystem-brightgreen)](https://openpaws.ai)
-[![Status: Production](https://img.shields.io/badge/status-production-brightgreen)](./)
+[![Status: Production](https://img.shields.io/badge/status-production-brightgreen)](./AGENTS.md)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](./LICENSE)
+[![Composite Action](https://img.shields.io/badge/type-composite%20action-lightgrey)](./action.yml)
+[![Scan: 65+ patterns](https://img.shields.io/badge/patterns-65%2B-orange)](./action.yml)
 
-A composite GitHub Action that scans pull requests and documentation for speciesist language and suggests clearer, more professional alternatives. Part of the [Open Paws](https://openpaws.ai) no-animal-violence tooling suite.
+A composite GitHub Action that scans pull requests and repository files for speciesist language — violent animal idioms, commodity framing, and industry euphemisms — and fails CI when violations meet or exceed a configured severity threshold. Part of the [Open Paws](https://openpaws.ai) no-animal-violence tooling suite.
 
----
-
-## What It Does
-
-When added to a GitHub Actions workflow, this action:
-
-1. Installs [woke](https://github.com/get-woke/woke) — an inclusive language linter
-2. Generates a rule file containing 65+ animal-violence language patterns, organized by severity
-3. Runs a full scan so all violations appear in the CI log
-4. Runs a second severity-filtered scan and **fails CI** when violations meet or exceed the configured threshold
-5. Posts inline PR annotations so reviewers see the exact line and a suggested alternative
-
-It enforces three categories of patterns:
-
-- **Violent animal idioms** — phrases that reference harm to animals (e.g., "like a chicken with its head cut off" → "in a panic")
-- **Animal-as-object metaphors** — phrases that reduce animals to instruments or commodities (e.g., "guinea pig" → "test subject", "cash cow" → "profit center")
-- **Industry euphemisms** — terms that obscure the reality of farmed animal treatment (e.g., "processing plant" → "slaughterhouse", "livestock" → "farmed animals")
+> [!NOTE]
+> This project is part of the [Open Paws](https://openpaws.ai) ecosystem — AI infrastructure for the animal liberation movement. [Explore the full platform →](https://github.com/Open-Paws)
 
 ---
 
-## Quick Start
+## Quickstart
 
-Create `.github/workflows/inclusive-language.yml` in your repository:
+Add this file to your repository as `.github/workflows/inclusive-language.yml`:
 
 ```yaml
 name: Inclusive Language
@@ -38,50 +25,67 @@ on: [pull_request]
 jobs:
   scan:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write  # required for inline PR annotations
+      checks: write
     steps:
       - uses: actions/checkout@v4
       - uses: Open-Paws/no-animal-violence-action@v1
 ```
 
-That is all that is required for a default run. It will scan the entire repository and fail CI on any `warning`-level or higher violation.
+That is the complete integration. The action installs its own dependencies at runtime — no additional setup required.
+
+To configure severity or limit scan scope:
+
+```yaml
+- uses: Open-Paws/no-animal-violence-action@v1
+  with:
+    severity: warning   # error | warning | info (default: warning)
+    paths: docs/ src/   # space-separated paths (default: .)
+```
 
 ---
 
-## Inputs
+## Features
+
+### Inputs
 
 | Input | Required | Default | Description |
 |-------|----------|---------|-------------|
-| `severity` | No | `warning` | Minimum severity that will fail CI. Accepts `error`, `warning`, or `info`. Lower severity thresholds catch more patterns. |
-| `paths` | No | `.` | Space-separated list of paths to scan. Useful for limiting scope to `docs/` or `src/`. |
-| `github-token` | No | `${{ github.token }}` | GitHub token used to post PR annotations. The default token is sufficient in most cases. |
+| `severity` | No | `warning` | Minimum severity that fails CI. Accepts `error`, `warning`, or `info`. Lower values catch fewer patterns; higher values catch more. |
+| `paths` | No | `.` | Space-separated list of paths to scan. Limit scope to `docs/` or `src/` to reduce noise. |
+| `github-token` | No | `${{ github.token }}` | Token used to post inline PR annotations. The default repository token is sufficient in most cases. |
 
-### Severity Levels Explained
+### Severity levels
 
-The action uses a three-tier severity scale:
-
-| Level | Typical patterns | Example |
+| Level | Typical patterns | Examples |
 |-------|-----------------|---------|
-| `error` | Directly references killing or harming an animal | "kill two birds with one stone", "like a chicken with its head cut off" |
-| `warning` | Industry commodity framing or animal-as-object metaphors | "livestock", "guinea pig", "cash cow", "sacred cow" |
-| `info` | Common idioms flagged for awareness only | "red herring", "pet project", "hold your horses" |
+| `error` | Direct references to harming or killing animals | "kill two birds with one stone", "like a chicken with its head cut off", "bring home the bacon" |
+| `warning` | Industry commodity framing and animal-as-object metaphors | "livestock", "guinea pig", "cash cow", "processing plant", "gestation crate" |
+| `info` | Common idioms flagged for awareness | "red herring", "pet project", "hold your horses", "canary in a coal mine" |
 
-Setting `severity: error` is the most permissive gate — it only blocks merges on the most harmful patterns. Setting `severity: info` blocks on all detected patterns.
+Setting `severity: error` is the most permissive gate — it only blocks merges on the most harmful patterns. Setting `severity: info` blocks on all 65+ detected patterns.
 
----
+### What the action checks
 
-## Outputs
+Three categories of patterns, all embedded inline in `action.yml`:
 
-This action produces no explicit step outputs. It communicates results through:
+- **Violent animal idioms** — phrases that reference harm to animals (e.g., "beat a dead horse" → "belabor the point")
+- **Animal-as-object metaphors** — phrases that reduce animals to instruments or commodities (e.g., "guinea pig" → "test subject", "cash cow" → "profit center")
+- **Industry euphemisms** — terms that obscure the reality of farmed animal treatment (e.g., "processing plant" → "slaughterhouse", "livestock" → "farmed animals")
+
+### Outputs
+
+This action produces no explicit step outputs. Results are communicated through:
 
 - **CI pass/fail** — exits non-zero when violations at or above the severity threshold are found
-- **Workflow log** — a full scan run always appears in the log, showing every violation regardless of threshold
-- **PR annotations** — inline comments appear on the relevant lines in the PR diff (requires the `github-token` input)
+- **Workflow log** — a full scan always appears in the log, showing every violation regardless of threshold
+- **PR annotations** — inline comments appear on the relevant lines in the PR diff (requires `pull-requests: write` permission)
 
----
+### Configuration examples
 
-## Configuration Examples
-
-### Only fail on errors (most permissive)
+Only fail on the most severe patterns:
 
 ```yaml
 - uses: Open-Paws/no-animal-violence-action@v1
@@ -89,7 +93,7 @@ This action produces no explicit step outputs. It communicates results through:
     severity: error
 ```
 
-### Scan documentation only
+Scan documentation only:
 
 ```yaml
 - uses: Open-Paws/no-animal-violence-action@v1
@@ -98,7 +102,7 @@ This action produces no explicit step outputs. It communicates results through:
     paths: docs/ README.md
 ```
 
-### Full strictness — fail on all patterns including info-level
+Full strictness — fail on all patterns:
 
 ```yaml
 - uses: Open-Paws/no-animal-violence-action@v1
@@ -107,18 +111,7 @@ This action produces no explicit step outputs. It communicates results through:
     paths: .
 ```
 
-### Using an explicit token (e.g., for cross-repo annotation)
-
-```yaml
-- uses: Open-Paws/no-animal-violence-action@v1
-  with:
-    severity: warning
-    github-token: ${{ secrets.MY_PAT }}
-```
-
----
-
-## Example Workflow — Full CI Integration
+Full CI integration with explicit permissions:
 
 ```yaml
 name: Language Quality
@@ -132,7 +125,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      pull-requests: write   # needed for inline PR annotations
+      pull-requests: write
       checks: write
     steps:
       - uses: actions/checkout@v4
@@ -144,72 +137,92 @@ jobs:
 
 ---
 
-## Example CI Output
+## Documentation
 
-When a violation is found, the full scan log will show:
-
-```
-docs/architecture.md:14:32: [warning] Rule: livestock
-  Found: "livestock"
-  Suggestions: "farmed animals", "animals raised for food"
-
-src/components/README.md:7:10: [error] Rule: guinea-pig
-  Found: "guinea pig"
-  Suggestions: "test subject", "first to try", "early adopter"
-```
-
-The PR annotation will appear inline on the violating line with the same suggestion text.
-
-When no violations are found at or above the threshold:
-
-```
-No rules at severity 'warning' or above — scan passed.
-```
+- [AGENTS.md](./AGENTS.md) — Architecture details, execution flow, safe vs. risky changes, and guidance for automated contributors
+- [action.yml](./action.yml) — The complete action definition: inputs, rule heredoc (65+ patterns), and run steps
+- [no-animal-violence](https://github.com/Open-Paws/no-animal-violence) — Canonical rule dictionary (source of truth for all patterns)
+- [Open Paws ecosystem](https://github.com/Open-Paws) — Related tools and platform repos
 
 ---
 
-## How It Works (Architecture)
+<details>
+<summary>Architecture</summary>
 
-The action is a **composite action** with no Docker container and no Node.js runtime. All logic runs in bash and Python 3, which are available on all GitHub-hosted runners.
+### Action type
 
-### Execution steps
+Composite action — no Docker image, no Node.js runtime. All steps run in bash and Python 3, which are available on all GitHub-hosted runners. This keeps the action fast (no container pull) and avoids a build step.
 
-1. **Install woke** — downloads the woke binary from the official release channel via `curl | bash` into `/usr/local/bin`
-2. **Generate rule file** — writes 65+ pattern rules to `/tmp/.woke.yaml` as a heredoc; no external network call is needed for the rules themselves
-3. **Display run** — runs `woke` against all specified paths with `--disable-default-rules` so only the generated rules apply; exit code is ignored so all violations appear in the log
-4. **Threshold filter** — a Python 3 snippet reads the generated rule file and writes `/tmp/.woke-threshold.yaml` containing only rules at or above the requested severity; exits 99 if no rules match the threshold (nothing to gate on)
-5. **Gate run** — runs `woke` again against the threshold-filtered config with `--exit-1-on-failure`; CI fails if any violations are found
+### Execution flow
 
-### Security notes
+```
+Step 1: Install woke
+  └── curl | bash → /usr/local/bin/woke
+
+Step 2: Generate rule file
+  └── heredoc → /tmp/.woke.yaml  (65+ rules, all severities)
+
+Step 3: Display run
+  └── woke -c /tmp/.woke.yaml --disable-default-rules <paths> || true
+      (exit code ignored — shows all violations in CI log)
+
+Step 4: Threshold filter (Python 3)
+  ├── Reads WOKE_SEVERITY env var (validated in bash beforehand)
+  ├── Filters /tmp/.woke.yaml to rules at or above threshold
+  ├── Writes /tmp/.woke-threshold.yaml
+  └── Exits 99 if no rules match threshold (nothing to gate on → pass)
+
+Step 5: Gate run
+  └── woke -c /tmp/.woke-threshold.yaml --disable-default-rules --exit-1-on-failure <paths>
+      (exits non-zero if any violations found → CI fails)
+```
+
+### Severity ordering
+
+Severity values are ordered: `error` (0) > `warning` (1) > `info` (2). The threshold filter keeps rules where `order[rule.severity] <= order[threshold]`:
+
+- `severity: error` → only `error` rules gate CI
+- `severity: warning` → `error` and `warning` rules gate CI
+- `severity: info` → all rules gate CI
+
+### Security design
 
 - The `severity` input is validated against an explicit allowlist (`error|warning|info`) in bash before use, and passed to Python via environment variable — never interpolated into source
 - The Python fallback uses a strict sentinel (`-1`) rather than a silent default, so an unrecognized severity value surfaces as a CI error rather than passing silently
-- `--disable-default-rules` is applied on both woke runs so woke's built-in rule set (which includes its own `whitelist/blacklist` rule at warning level) cannot interfere with the severity filter
+- `--disable-default-rules` is applied on both woke runs so woke's built-in rule set cannot interfere with severity filtering
+
+### Known limitations
+
+- Rules in `action.yml` are maintained inline and must be manually kept in sync with the canonical `no-animal-violence` dictionary — rule drift is an active maintenance risk
+- No automated test harness — testing requires a real GitHub Actions run against a fixture repository
+- The woke install uses `curl | bash` — convenient but carries supply chain risk; pinning to a specific release SHA is a future improvement
+- PR annotations require `pull-requests: write` permission — callers with restrictive permission sets may not see inline annotations
+
+</details>
 
 ---
 
-## Relationship to the No-Animal-Violence Ecosystem
+## Contributing
 
-This action is part of a broader suite of tools enforcing the same canonical rule set:
+Contributions to `no-animal-violence-action` are welcome — especially rule additions, severity calibration, and test infrastructure.
 
-| Tool | Use case |
-|------|----------|
-| [no-animal-violence](https://github.com/Open-Paws/no-animal-violence) | Canonical rule dictionary — source of truth for all 65+ patterns |
-| **no-animal-violence-action** (this repo) | GitHub Actions CI — catches violations in PRs before merge |
-| [no-animal-violence-pre-commit](https://github.com/Open-Paws/no-animal-violence-pre-commit) | Local git hook — catches violations before a commit is created |
-| [reviewdog-no-animal-violence](https://github.com/Open-Paws/reviewdog-no-animal-violence) | Alternative reviewdog-based CI action |
-| [semgrep-rules-no-animal-violence](https://github.com/Open-Paws/semgrep-rules-no-animal-violence) | Semgrep-based CI scanner with AST-level matching |
-| [eslint-plugin-no-animal-violence](https://github.com/Open-Paws/eslint-plugin-no-animal-violence) | ESLint plugin for JavaScript/TypeScript projects |
-| [vale-no-animal-violence](https://github.com/Open-Paws/vale-no-animal-violence) | Vale rules for documentation prose |
-| [vscode-no-animal-violence](https://github.com/Open-Paws/vscode-no-animal-violence) | VS Code extension for editor-time feedback |
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feat/my-change`)
+3. Make changes to `action.yml` — the entire action lives in that single file
+4. Test by pointing a workflow in a separate test repository at your branch (`Open-Paws/no-animal-violence-action@your-branch`) and opening a PR against fixture files containing known violations
+5. Submit a pull request — this repo runs itself as a CI check, so your PR is scanned automatically
 
-**Important:** The 65 rules embedded in `action.yml` are currently maintained inline and must be kept in sync with the canonical `no-animal-violence` dictionary manually. Rule drift between these two repositories is an active maintenance risk. A long-term goal is to load rules from the canonical source at action runtime rather than duplicating them.
+When adding or modifying rules in `action.yml`, also update the canonical dictionary in [no-animal-violence](https://github.com/Open-Paws/no-animal-violence) to keep the suite in sync.
+
+For architecture context, safe vs. risky change guidance, and notes for automated contributors, see [AGENTS.md](./AGENTS.md).
 
 ---
 
-## Academic Foundation
+## License and Acknowledgments
 
-The language choices enforced by this action are grounded in peer-reviewed research:
+MIT — Copyright (c) 2026 [Open Paws](https://openpaws.ai), a 501(c)(3) nonprofit.
+
+This action is built on [woke](https://github.com/get-woke/woke) by Caitlin Johanson and contributors, an inclusive language linter. The language patterns are grounded in research on speciesist framing in natural language:
 
 - Hagendorff et al. (2023). "Speciesist bias in AI." *AI and Ethics*. Documents how animal-harm metaphors encode speciesist defaults in language models.
 - Takeshita et al. (2022). *Information Processing & Management*. Examines how commodity framing shapes perception of farmed animals.
@@ -217,18 +230,12 @@ The language choices enforced by this action are grounded in peer-reviewed resea
 
 ---
 
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feat/my-change`)
-3. Make changes to `action.yml` (the composite action definition)
-4. Test by adding the action to a workflow in a separate test repository containing known violating phrases
-5. Submit a pull request — this repo runs itself as a CI check, so your PR will be scanned automatically
-
-When adding or modifying rules in `action.yml`, also update the canonical dictionary in [no-animal-violence](https://github.com/Open-Paws/no-animal-violence) to keep the suite in sync.
-
-See [AGENTS.md](./AGENTS.md) for architecture details and guidance for automated contributors.
+<!-- tech_stack: bash, python3, yaml, woke -->
+<!-- project_status: production -->
+<!-- difficulty: beginner -->
+<!-- skill_tags: github-actions, inclusive-language, speciesism, ci-cd, linting -->
+<!-- related_repos: no-animal-violence, no-animal-violence-pre-commit, reviewdog-no-animal-violence, semgrep-rules-no-animal-violence, eslint-plugin-no-animal-violence, vale-no-animal-violence, vscode-no-animal-violence -->
 
 ---
 
-MIT — [Open Paws](https://openpaws.ai)
+[Donate](https://openpaws.ai/donate) · [Discord](https://discord.gg/openpaws) · [openpaws.ai](https://openpaws.ai) · [Volunteer](https://openpaws.ai/volunteer)
