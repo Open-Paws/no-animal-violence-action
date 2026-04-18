@@ -68,11 +68,13 @@ Severity values are ordered: `error` (0) > `warning` (1) > `info` (2). The thres
 
 ### Rule categories embedded in action.yml
 
+<!-- woke:disable -->
 1. Violent animal idioms (`error`) — e.g., "kill two birds with one stone", "beat a dead horse", "like a chicken with its head cut off"
 2. Animal-as-object metaphors (`warning`) — e.g., "guinea pig", "cash cow", "sacred cow", "scapegoat"
 3. Industry euphemisms (`warning`) — e.g., "livestock", "poultry", "processing plant", "gestation crate", "spent hen"
 4. Technical terminology (`warning/info`) — e.g., "cattle vs. pets", "canary deployment", "dogfooding", "herding cats"
 5. Common idioms flagged for awareness (`info`) — e.g., "red herring", "pet project", "hold your horses"
+<!-- woke:enable -->
 
 ### Integration points
 

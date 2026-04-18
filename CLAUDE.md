@@ -74,7 +74,7 @@ Rules are organized by severity (`error`, `warning`, `info`) and category (viole
 3. **Single responsibility** — Rule generation, scanning, and annotation are three distinct steps. Don't collapse them.
 4. **Error handling** — The action must fail the CI check on severity matches, not silently pass. Verify exit code behavior.
 5. **Information hiding** — Users need only know the three inputs. Internal rule generation is an implementation detail.
-6. **Ubiquitous language** — "farmed animal" not "livestock," "factory farm" not "farm." Never introduce synonyms in rule messages.
+6. **Ubiquitous language** — use "farmed animal" not the industry commodity term, "factory farm" not the euphemism. Never introduce synonyms in rule messages.
 7. **Design for change** — Adding a rule should require only updating the canonical source. Inline duplication makes changes expensive.
 8. **Legacy velocity** — Before modifying rule generation logic, test against a real PR in a test repo.
 9. **Over-patterning** — Composite action (no Docker, no Node) is the right architecture. Don't add a build step.
