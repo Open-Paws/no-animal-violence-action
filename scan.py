@@ -429,7 +429,8 @@ RULES = [
     },
     {
         "name": "pig",
-        "patterns": _p(["pig"], word_boundary=True),
+        # Exclude known technical terms: Apache Pig, Hadoop Pig, PIG Latin
+        "patterns": [re.compile(r"(?<!apache )(?<!hadoop )(?<!\w)pig(?! latin)(?!\w)", re.IGNORECASE)],
         "phrase": "pig",
         "alternatives": ["resource-intensive", "bloated", "heavy consumer"],
         "reason": "Animal-as-insult for resource consumption — dehumanizing and imprecise.",
@@ -723,11 +724,15 @@ def annotation_level(severity):
 # ---------------------------------------------------------------------------
 
 def load_ignore_patterns(root):
-    """Return a list of compiled patterns from .wokeignore in root directory."""
+    """Return compiled patterns from .wokeignore, or None if the file does not exist.
+
+    Returns None (not []) when the file is absent so callers can distinguish
+    'file not found' from 'file exists but is empty'.
+    """
     ignore_path = Path(root) / ".wokeignore"
-    patterns = []
     if not ignore_path.exists():
-        return patterns
+        return None
+    patterns = []
     with open(ignore_path, encoding="utf-8", errors="replace") as fh:
         for raw_line in fh:
             line = raw_line.strip()
@@ -827,10 +832,11 @@ def main():
         sys.exit(1)
     threshold = SEVERITY_ORDER[raw_severity]
 
-    # Load ignore patterns from the first scan path's root or cwd
+    # Load ignore patterns: prefer cwd .wokeignore, fall back to first scan path.
+    # Use explicit None check so an intentionally empty .wokeignore is respected.
     root_for_ignore = scan_paths[0] if scan_paths else "."
-    # Also check cwd in case the action root differs from scan path
-    ignore_patterns = load_ignore_patterns(".") or load_ignore_patterns(root_for_ignore)
+    cwd_patterns = load_ignore_patterns(".")
+    ignore_patterns = cwd_patterns if cwd_patterns is not None else (load_ignore_patterns(root_for_ignore) or [])
 
     total_findings = 0
     threshold_violations = 0
