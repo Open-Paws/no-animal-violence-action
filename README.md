@@ -60,7 +60,7 @@ To configure severity or limit scan scope:
 ### Severity levels
 
 | Level | Typical patterns | Examples |
-|-------|-----------------|---------|
+|-------|-----------------|---------| 
 | `error` | Direct references to harming or killing animals | "kill two birds with one stone", "like a chicken with its head cut off", "bring home the bacon" |
 | `warning` | Industry commodity framing and animal-as-object metaphors | "livestock", "guinea pig", "cash cow", "processing plant", "gestation crate" |
 | `info` | Common idioms flagged for awareness | "red herring", "pet project", "hold your horses", "canary in a coal mine" |
@@ -156,7 +156,7 @@ Composite action — no Docker image, no Node.js runtime. All steps run in bash 
 
 ### Execution flow
 
-```
+```text
 Step 1: Verify Python 3
   └── python3 --version  (fail fast if unavailable)
 
