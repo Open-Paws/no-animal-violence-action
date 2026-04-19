@@ -34,7 +34,7 @@ jobs:
       - uses: Open-Paws/no-animal-violence-action@v1
 ```
 
-That is the complete integration. The action installs its own dependencies at runtime — no additional setup required.
+That is the complete integration. The action uses a self-contained Python scanner with no external binary dependencies — no install step required.
 
 To configure severity or limit scan scope:
 
@@ -69,7 +69,7 @@ Setting `severity: error` is the most permissive gate — it only blocks merges 
 
 ### What the action checks
 
-Three categories of patterns, all embedded inline in `action.yml`:
+Three categories of patterns, all embedded inline in `scan.py`:
 
 - **Violent animal idioms** — phrases that reference harm to animals (e.g., "beat a dead horse" → "belabor the point")
 - **Animal-as-object metaphors** — phrases that reduce animals to instruments or commodities (e.g., "guinea pig" → "test subject", "cash cow" → "profit center")
@@ -140,7 +140,8 @@ jobs:
 ## Documentation
 
 - [AGENTS.md](./AGENTS.md) — Architecture details, execution flow, safe vs. risky changes, and guidance for automated contributors
-- [action.yml](./action.yml) — The complete action definition: inputs, rule heredoc (65+ patterns), and run steps
+- [action.yml](./action.yml) — The complete action definition: inputs and run steps
+- [scan.py](./scan.py) — The self-contained Python scanner: all 65+ rules and scan logic
 - [no-animal-violence](https://github.com/Open-Paws/no-animal-violence) — Canonical rule dictionary (source of truth for all patterns)
 - [Open Paws ecosystem](https://github.com/Open-Paws) — Related tools and platform repos
 
@@ -151,51 +152,42 @@ jobs:
 
 ### Action type
 
-Composite action — no Docker image, no Node.js runtime. All steps run in bash and Python 3, which are available on all GitHub-hosted runners. This keeps the action fast (no container pull) and avoids a build step.
+Composite action — no Docker image, no Node.js runtime. All steps run in bash and Python 3, which are pre-installed on all GitHub-hosted runners. This keeps the action fast (no container pull, no binary install) and avoids supply chain risk from third-party install scripts.
 
 ### Execution flow
 
 ```
-Step 1: Install woke
-  └── curl | bash → /usr/local/bin/woke
+Step 1: Verify Python 3
+  └── python3 --version  (fail fast if unavailable)
 
-Step 2: Generate rule file
-  └── heredoc → /tmp/.woke.yaml  (65+ rules, all severities)
-
-Step 3: Display run
-  └── woke -c /tmp/.woke.yaml --disable-default-rules <paths> || true
-      (exit code ignored — shows all violations in CI log)
-
-Step 4: Threshold filter (Python 3)
-  ├── Reads WOKE_SEVERITY env var (validated in bash beforehand)
-  ├── Filters /tmp/.woke.yaml to rules at or above threshold
-  ├── Writes /tmp/.woke-threshold.yaml
-  └── Exits 99 if no rules match threshold (nothing to gate on → pass)
-
-Step 5: Gate run
-  └── woke -c /tmp/.woke-threshold.yaml --disable-default-rules --exit-1-on-failure <paths>
-      (exits non-zero if any violations found → CI fails)
+Step 2: Scan
+  └── python3 "$GITHUB_ACTION_PATH/scan.py"
+      ├── Reads INPUT_PATHS (default: ".")
+      ├── Reads INPUT_SEVERITY (default: "warning")
+      ├── Loads .wokeignore patterns from cwd
+      ├── Walks file tree, emits ::error/::warning/::notice annotations
+      └── Exits 1 if any finding at or above severity threshold
 ```
 
 ### Severity ordering
 
-Severity values are ordered: `error` (0) > `warning` (1) > `info` (2). The threshold filter keeps rules where `order[rule.severity] <= order[threshold]`:
+Severity values are ordered: `error` (0) > `warning` (1) > `info` (2). The threshold check keeps findings where `order[finding.severity] <= order[threshold]`:
 
-- `severity: error` → only `error` rules gate CI
-- `severity: warning` → `error` and `warning` rules gate CI
-- `severity: info` → all rules gate CI
+- `severity: error` → only `error` findings gate CI
+- `severity: warning` → `error` and `warning` findings gate CI
+- `severity: info` → all findings gate CI
 
 ### Security design
 
-- The `severity` input is validated against an explicit allowlist (`error|warning|info`) in bash before use, and passed to Python via environment variable — never interpolated into source
-- The Python fallback uses a strict sentinel (`-1`) rather than a silent default, so an unrecognized severity value surfaces as a CI error rather than passing silently
-- `--disable-default-rules` is applied on both woke runs so woke's built-in rule set cannot interfere with severity filtering
+- The `severity` input is validated against an explicit allowlist (`error`, `warning`, `info`) in Python before use, passed via environment variable — never interpolated into shell
+- No external binary downloads — the scanner is a single Python file checked into the repository
+- Supply chain risk from `curl | bash` is eliminated entirely
+- `.wokeignore` is respected to exclude rule definition files from self-scanning
 
 ### Known limitations
 
-- Rules in `action.yml` are maintained inline and must be manually kept in sync with the canonical `no-animal-violence` dictionary — rule drift is an active maintenance risk
+- Rules in `scan.py` are maintained inline and must be manually kept in sync with the canonical `no-animal-violence` dictionary — rule drift is an active maintenance risk
 - No automated test harness — testing requires a real GitHub Actions run against a fixture repository
-- The woke install uses `curl | bash` — convenient but carries supply chain risk; pinning to a specific release SHA is a future improvement
 - PR annotations require `pull-requests: write` permission — callers with restrictive permission sets may not see inline annotations
 
 </details>
@@ -208,11 +200,11 @@ Contributions to `no-animal-violence-action` are welcome — especially rule add
 
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feat/my-change`)
-3. Make changes to `action.yml` — the entire action lives in that single file
+3. Make changes to `scan.py` for rule changes, or `action.yml` for workflow changes
 4. Test by pointing a workflow in a separate test repository at your branch (`Open-Paws/no-animal-violence-action@your-branch`) and opening a PR against fixture files containing known violations
 5. Submit a pull request — this repo runs itself as a CI check, so your PR is scanned automatically
 
-When adding or modifying rules in `action.yml`, also update the canonical dictionary in [no-animal-violence](https://github.com/Open-Paws/no-animal-violence) to keep the suite in sync.
+When adding or modifying rules in `scan.py`, also update the canonical dictionary in [no-animal-violence](https://github.com/Open-Paws/no-animal-violence) to keep the suite in sync.
 
 For architecture context, safe vs. risky change guidance, and notes for automated contributors, see [AGENTS.md](./AGENTS.md).
 
@@ -222,7 +214,7 @@ For architecture context, safe vs. risky change guidance, and notes for automate
 
 MIT — Copyright (c) 2026 [Open Paws](https://openpaws.ai), a 501(c)(3) nonprofit.
 
-This action is built on [woke](https://github.com/get-woke/woke) by Caitlin Johanson and contributors, an inclusive language linter. The language patterns are grounded in research on speciesist framing in natural language:
+The language patterns are grounded in research on speciesist framing in natural language:
 
 - Hagendorff et al. (2023). "Speciesist bias in AI." *AI and Ethics*. Documents how animal-harm metaphors encode speciesist defaults in language models.
 - Takeshita et al. (2022). *Information Processing & Management*. Examines how commodity framing shapes perception of farmed animals.
@@ -230,7 +222,7 @@ This action is built on [woke](https://github.com/get-woke/woke) by Caitlin Joha
 
 ---
 
-<!-- tech_stack: bash, python3, yaml, woke -->
+<!-- tech_stack: bash, python3, yaml -->
 <!-- project_status: production -->
 <!-- difficulty: beginner -->
 <!-- skill_tags: github-actions, inclusive-language, speciesism, ci-cd, linting -->

@@ -1,5 +1,7 @@
 # action.yml contains the canonical rule definitions — all patterns are present by design
 action.yml
+# scan.py contains the Python rule definitions — all patterns are present by design
+scan.py
 # .claude/ contains agent instructions that document the forbidden patterns as examples
 .claude/
 # AGENTS.md and README.md document the detected patterns as usage examples
