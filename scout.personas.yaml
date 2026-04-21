@@ -1,0 +1,155 @@
+version: "1"
+interaction: hook
+# GitHub Action that scans PR-changed files for speciesist language and fails CI with inline annotations when violations meet the configured severity threshold.
+
+personas:
+  - id: clean-pr
+    name: PR With Only Clean Files
+    description: >
+      A pull request whose changed files contain no speciesist idioms, commodity
+      framing, or industry euphemisms. All scanned paths are free of patterns
+      tracked by the no-animal-violence rule set. The action should pass with
+      exit code 0 and produce no annotations.
+    environment:
+      runtime: github-actions
+      os: ubuntu-latest
+    flows:
+      - id: clean-pr-scan
+        name: Scan a clean PR
+        steps:
+          - run: >
+              Workflow triggers on pull_request. actions/checkout@v4 checks out
+              the branch. Open-Paws/no-animal-violence-action runs woke against
+              the default path (.) using the default severity (warning). woke
+              walks the file tree, finds zero matches at or above the warning
+              threshold, and exits 0.
+        expected_outcome: >
+          CI check status is green (pass). No ::error or ::warning annotations
+          appear in the workflow log or on the PR diff. The workflow log shows
+          woke completing with no findings.
+    assertions:
+      succeeds:
+        - PR containing only files with clean language passes the check with exit code 0
+        - No inline PR annotations are posted
+        - Workflow log reports zero violations
+      fails_gracefully:
+        - If woke binary install fails the step exits non-zero with a clear error message rather than silently passing
+      output_contains:
+        - Workflow log line indicating woke ran and found no violations
+
+  - id: violations-pr
+    name: PR With Speciesist Idioms
+    description: >
+      A pull request that modifies at least one text file containing one or more
+      speciesist phrases tracked by the no-animal-violence rule set — for example
+      "kill two birds with one stone", "guinea pig", or "livestock". The action
+      should fail CI and surface inline annotations on the offending lines.
+    environment:
+      runtime: github-actions
+      os: ubuntu-latest
+    flows:
+      - id: violations-pr-scan
+        name: Scan a PR with speciesist language
+        steps:
+          - run: >
+              Workflow triggers on pull_request. actions/checkout@v4 checks out
+              the branch. Open-Paws/no-animal-violence-action installs woke,
+              writes the embedded rule file to /tmp/.woke.yaml, and invokes
+              woke against the default path (.) with severity warning. woke
+              matches one or more patterns in the changed files, emits
+              ::error:: or ::warning:: workflow commands for each hit (file
+              path, line number, column, matched term, suggested alternative),
+              and exits 1.
+        expected_outcome: >
+          CI check status is red (fail). The PR diff surfaces inline annotations
+          on each offending line showing the matched term and its suggested
+          alternative. The workflow log lists every violation regardless of
+          threshold.
+    assertions:
+      succeeds:
+        - Each speciesist phrase triggers an annotation citing the matched term and a concrete alternative
+        - CI exits non-zero, blocking merge until violations are resolved
+        - Workflow log lists all violations found across all scanned files
+      fails_gracefully:
+        - A file with a violation AND a .wokeignore entry for that file is excluded from results without crashing
+        - Mixed PR (some clean files, some violated) reports only the violated lines and still fails CI
+      output_contains:
+        - "::error file=<path>,line=<n>,col=<n>::"
+        - Suggested alternative phrase alongside each matched term
+        - Exit code 1 in the step outcome
+
+  - id: binary-files-pr
+    name: PR Modifying Only Non-Text Files
+    description: >
+      A pull request that changes only binary or non-text assets — PNG images,
+      compiled artifacts, fonts, or similar files that woke cannot meaningfully
+      scan. The action should complete without crashing and should not produce
+      spurious annotation failures.
+    environment:
+      runtime: github-actions
+      os: ubuntu-latest
+    flows:
+      - id: binary-files-scan
+        name: Scan a PR with only binary file changes
+        steps:
+          - run: >
+              Workflow triggers on pull_request. actions/checkout@v4 checks out
+              the branch. Open-Paws/no-animal-violence-action installs woke and
+              invokes it against the default path (.). woke encounters binary
+              files, skips or safely ignores them (woke skips non-UTF-8 content
+              by design), finds zero text-based violations, and exits 0.
+        expected_outcome: >
+          CI check status is green (pass). No annotations appear. The workflow
+          log may note skipped binary files but does not emit an error. No
+          panic or unhandled exception from the scanner.
+    assertions:
+      succeeds:
+        - Action completes with exit code 0 when only binary files are changed
+        - No false-positive annotations are raised against binary content
+      fails_gracefully:
+        - Binary file encountered mid-scan does not abort the entire scan run
+        - Workflow log clearly indicates binary files were skipped, not silently omitted
+      output_contains:
+        - Exit code 0 in the step outcome
+        - Workflow log showing scan completed with zero violations
+
+  - id: custom-paths-pr
+    name: PR in a Repo With Custom Path Filters
+    description: >
+      A pull request in a repo whose inclusive-language workflow configures the
+      action with a non-default paths input — for example restricting scanning
+      to docs/ and README.md. Files outside those paths may contain speciesist
+      language but should not trigger failures. Only content within the declared
+      paths is evaluated.
+    environment:
+      runtime: github-actions
+      os: ubuntu-latest
+    flows:
+      - id: custom-paths-scan
+        name: Scan only configured paths
+        steps:
+          - run: >
+              Workflow triggers on pull_request. Caller workflow passes
+              `paths: docs/ README.md` to the action. actions/checkout@v4
+              checks out the branch. Open-Paws/no-animal-violence-action
+              installs woke and passes the configured paths to woke's positional
+              arguments. woke scans only docs/ and README.md. Source files
+              outside those paths are never read, even if they contain
+              violations. If docs/ is clean, woke exits 0. If docs/ contains
+              a violation, woke exits 1 with annotations scoped to docs/.
+        expected_outcome: >
+          Only files under docs/ and README.md are evaluated. Violations in
+          src/ or other unconfigured paths produce no annotations and do not
+          affect the CI result. Annotations, if any, point to lines within
+          the declared path scope.
+    assertions:
+      succeeds:
+        - Files inside configured paths are scanned and violations are reported
+        - Files outside configured paths are never read and never produce annotations
+        - Passing only `paths: docs/` with a clean docs/ directory results in a green check even if src/ is unclean
+      fails_gracefully:
+        - A configured path that does not exist in the repo (e.g. docs/ absent) does not crash the action — woke exits gracefully with no findings
+        - Misconfigured paths input (e.g. trailing slash inconsistency) is handled without a shell injection risk, since paths are passed via environment variable not inline shell interpolation
+      output_contains:
+        - Annotations, if raised, reference file paths within the configured scope
+        - Workflow log confirms which paths were passed to woke
