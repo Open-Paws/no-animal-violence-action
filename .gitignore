@@ -12,3 +12,7 @@ build/
 *.swo
 coverage/
 .turbo/
+
+# Claude Code agent state — never commit
+.claude/agent-memory/
+.claude/worktrees/
