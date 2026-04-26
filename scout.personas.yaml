@@ -41,9 +41,9 @@ personas:
     name: PR With Speciesist Idioms
     description: >
       A pull request that modifies at least one text file containing one or more
-      speciesist phrases tracked by the no-animal-violence rule set — for example
-      "kill two birds with one stone", "guinea pig", or "livestock". The action
-      should fail CI and surface inline annotations on the offending lines.
+      speciesist phrases from the error-severity category of the no-animal-violence
+      rule set. The action should fail CI and surface inline annotations on the
+      offending lines.
     environment:
       runtime: github-actions
       os: ubuntu-latest
