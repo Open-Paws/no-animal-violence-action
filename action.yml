@@ -28,6 +28,11 @@ runs:
       shell: bash
       run: |
         cat > /tmp/.woke.yaml << 'RULES'
+        ignore_files:
+        - scout.personas.yaml
+        - AGENTS.md
+        - CLAUDE.md
+        - '**/.claude/rules/'
         rules:
         - name: kill-two-birds-with-one-stone
           terms:
