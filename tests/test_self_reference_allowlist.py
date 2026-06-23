@@ -156,7 +156,7 @@ def test_real_violations_still_flagged(fixture_tree):
         f"flagged={flagged_paths}"
     )
 
-    # Sanity: at least one finding per phrase (3 distinct error/warning/info
+    # Coherence check: at least one finding per phrase (3 distinct error/warning/info
     # phrases). We don't pin the exact count so rule additions don't break it,
     # but there must be multiple findings - a single match would suggest
     # scanning stopped early.
