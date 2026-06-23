@@ -12,3 +12,7 @@ build/
 *.swo
 coverage/
 .turbo/
+
+# Python test caches
+__pycache__/
+.pytest_cache/

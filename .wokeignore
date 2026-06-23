@@ -7,3 +7,5 @@ scan.py
 # AGENTS.md and README.md document the detected patterns as usage examples
 AGENTS.md
 README.md
+# Test fixtures contain the prohibited phrases as scanner inputs by design
+tests/test_self_reference_allowlist.py

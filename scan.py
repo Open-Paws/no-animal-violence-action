@@ -1328,6 +1328,22 @@ SCAN_EXTENSIONS = {
 # Directories to always skip regardless of .wokeignore
 SKIP_DIRS = {".git", "node_modules", "vendor"}
 
+# Files to always skip regardless of .wokeignore. These are canonical dictionary
+# files that define the prohibited phrases as examples — flagging them is a
+# self-reference false positive. Matched against the path with forward slashes,
+# from any depth, so consumer repos carrying these rule files are covered.
+SKIP_FILES_PATTERNS = [
+    re.compile(r"(^|/)\.claude/rules/advocacy-domain\.md$"),
+    re.compile(r"(^|/)\.claude/rules/speciesist-language\.md$"),
+]
+
+
+def is_self_reference_file(path_str):
+    """Return True if path is one of the canonical dictionary files that
+    define the prohibited phrases as examples and so must never be scanned."""
+    normalised = path_str.replace("\\", "/")
+    return any(pat.search(normalised) for pat in SKIP_FILES_PATTERNS)
+
 # ---------------------------------------------------------------------------
 # Severity ordering
 # ---------------------------------------------------------------------------
@@ -1389,7 +1405,9 @@ def iter_files(scan_paths, ignore_patterns):
             print(f"::warning::scan.py: path does not exist: {raw_path}", flush=True)
             continue
         if base.is_file():
-            if base.suffix in SCAN_EXTENSIONS and not is_ignored(str(base), ignore_patterns):
+            if (base.suffix in SCAN_EXTENSIONS
+                    and not is_self_reference_file(str(base))
+                    and not is_ignored(str(base), ignore_patterns)):
                 yield base
             continue
         for dirpath, dirnames, filenames in os.walk(base):
@@ -1403,7 +1421,9 @@ def iter_files(scan_paths, ignore_patterns):
             for filename in filenames:
                 full = Path(dirpath) / filename
                 rel = str(full)
-                if full.suffix in SCAN_EXTENSIONS and not is_ignored(rel, ignore_patterns):
+                if (full.suffix in SCAN_EXTENSIONS
+                        and not is_self_reference_file(rel)
+                        and not is_ignored(rel, ignore_patterns)):
                     yield full
 
 
